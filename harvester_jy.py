@@ -15,7 +15,7 @@ for jar in glob(libDir+'/*.jar'):
 from ORG.oclc.oai.harvester2.verb import GetRecord
 from ORG.oclc.oai.harvester2.verb import ListRecords
 
-def listRecords(url, from_date='', until_date='', setSpec='', prefix='', token=''):
+def listRecords(url, provider, from_date='', until_date='', setSpec='', prefix='', token=''):
     content = ''
     loop = 0
     if token == None:
@@ -35,7 +35,7 @@ def listRecords(url, from_date='', until_date='', setSpec='', prefix='', token='
             content=''
             break
         elif (token != None or len(token) != 0) and loop >= settings.LIMIT_TO_CALLS:
-            saveResumptionToken('scielo', token)
+            saveResumptionToken(provider, token)
             break
         else:
             records = ListRecords(url, token)
@@ -79,7 +79,7 @@ def doHarvest():
         name = provider[0]
         url = provider[1]
         token = loadResumptionToken(name)
-        content = listRecords(url, 'oai_dc')
+        content = listRecords(url, name, 'oai_dc')
         writeXMLFile(name, content)
         print "Harvest done for %s provider" % name
     
