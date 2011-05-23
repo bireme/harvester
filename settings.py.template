@@ -1,0 +1,8 @@
+
+LIMIT_TO_CALLS = 10
+
+
+PROVIDERS = (
+            ('Name', 'URL'),
+            ('Name', 'URL'),
+)
