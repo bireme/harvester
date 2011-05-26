@@ -3,22 +3,26 @@ import os.path
 from datetime import date
 from urllib import urlencode
 
-
-def getRequestKey(kw):
-    """Create stable key for request dictionary to use in file.
-    """
-    items = kw.items()
-    items.sort()
-    return urlencode(items)
-
+            
 class CustomClient(client.Client):
     def __init__(self, base_url, mapping_path, metadata_registry):
         client.Client.__init__(self, base_url, metadata_registry)
         self._mapping = {}
         self._mapping_path = mapping_path
+        about = self.identify()
+        self._name = about.repositoryName()
+        self._earliestDate = about.earliestDatestamp()
+        self._day_granularity = True
+        
         
     def makeRequest(self, **kw):
-        print kw
+        def getRequestKey(kw):
+            """Create stable key for request dictionary to use in file.
+            """
+            items = kw.items()
+            items.sort()
+            return urlencode(items)
+        #print kw
         text = client.Client.makeRequest(self, **kw)
         self._mapping[getRequestKey(kw)] = text
         return text
