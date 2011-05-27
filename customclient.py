@@ -37,7 +37,7 @@ class CustomClient(client.Client):
             f.write(request)
             f.write('\n')
             response_f.write(response)
-            i += 1
+            
         response_f.close()
         f.close()
   
