@@ -9,6 +9,7 @@ class CustomClient(client.Client):
         client.Client.__init__(self, base_url, metadata_registry)
         self._mapping = {}
         self._mapping_path = mapping_path
+        self._verbose = False
         about = self.identify()
         self._name = about.repositoryName()
         self._earliestDate = about.earliestDatestamp()
@@ -22,7 +23,8 @@ class CustomClient(client.Client):
             items = kw.items()
             items.sort()
             return urlencode(items)
-        #print kw
+        if self._verbose == True:
+            print kw
         text = client.Client.makeRequest(self, **kw)
         self._mapping[getRequestKey(kw)] = text
         return text
