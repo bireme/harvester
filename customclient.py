@@ -30,7 +30,7 @@ class CustomClient(client.Client):
     def save(self):
         mapping_path = self._mapping_path
         f = open(os.path.join(mapping_path, 'mapping.txt'), 'w')
-        filename = date.today().strftime("%Y-%m-%d") + '.xml'
+        filename = self._name + '.xml'
         response_f = open(os.path.join(mapping_path, filename), 'w')
         
         for request, response in self._mapping.items():
