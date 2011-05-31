@@ -30,8 +30,9 @@ class Harvester(object):
             yield CustomClient(provider[1], providerDir, self._registry)
             
 
-    def doMultHarvest(self, providers, metadata):
+    def doMultHarvest(self, providers, metadata, verbose):
         for provider in providers:
+            provider._verbose = verbose
             date = self.getFromDate(provider)
             lastDate = None
             iterator = provider.listRecords(metadataPrefix=metadata, from_=date)
@@ -43,19 +44,11 @@ class Harvester(object):
                 
     def doHarvest(self, provider, metadata, from_, until):
         
-        lastDate = self.getFromDate(provider)
-        
-        if lastDate > from_:
-            from_ = lastDate        
-        
-        iterator = provider.listRecords(metadataPrefix=metadata, 
+        iterator = provider.listRecords(metadataPrefix=metadata,
                                         from_=from_, until=until)
-        newLastDate = None
+        
         for header, metadata, about in iterator:
             provider.save()
-            newLastDate = header.datestamp()
-            
-        self.saveLastDate(provider, newLastDate)
 
     def getFromDate(self, provider):
         pName = provider._name
@@ -98,16 +91,18 @@ if __name__ == '__main__' :
     parser = argparse.ArgumentParser(
         description='Make harvest from any repositories and save the metadata in file system')
         
-    parser.add_argument(
-        'url', type=str, default=None, metavar='OAI provider URL',
+    group = parser.add_mutually_exclusive_group(required=True)
+    
+    group.add_argument(
+        '-u', '--url', type=str, default=None, metavar='OAI provider URL',
         help='an alternative URL for harvesting. Ignore settings file')   
     
     parser.add_argument(
-        '-f', '--from_', type=str, default=None,
+        '-i', '--initial', type=str, default=None,
         help='an initial date to harvest')
         
     parser.add_argument(
-        '-t', '--to', type=str, default=None,
+        '-f', '--final', type=str, default=None,
         help='a final date to harvest')
         
     parser.add_argument(
@@ -115,6 +110,10 @@ if __name__ == '__main__' :
         help='specify the metadataPrefix for OAI protocol')
         
     parser.add_argument(
+        '-v', '--verbose', action='store_true', 
+        help='list each request information')
+        
+    group.add_argument(
         '-g', '--go', action='store_true', 
         help='makes harvest from a default providers list')
         
@@ -122,27 +121,31 @@ if __name__ == '__main__' :
     
     if args.go:
         providers = harv.getProvidersIterator()
-        harv.doMultHarvest(providers, args.metadata)
+        harv.doMultHarvest(providers, args.metadata, args.verbose)
     else:
-        if args.from_ and date_patern.match(args.from_):
-            from_=datetime.strptime(args.from_, STR_DATE)
-        elif args.from_:
+        if args.initial and date_patern.match(args.initial):
+            initial=datetime.strptime(args.initial, STR_DATE)
+        elif args.initial:
             print 'Invalid date fromat: Date must be like %s' % DATE_EX
-            #raise SystemExit
+            raise SystemExit
         else:
-            from_=None
+           initial=None
         
-        if args.to and date_patern.match(args.to):
-            until=datetime.strptime(args.to, STR_DATE)
-        elif args.to:
+        if args.final and date_patern.match(args.final):
+            final=datetime.strptime(args.final, STR_DATE)
+        elif args.final:
             print 'Invalid date fromat: Date must be like %s' % DATE_EX
-            #raise SystemExit
+            raise SystemExit
         else:
-            until=None
+            final=None
+            
+        if initial > final:
+            print 'Invalid date parameters: Final date must be greater than Initial date'
+            raise SystemExit
         
         provider = CustomClient(args.url, BASE_PATH, harv._registry)
-        
-        harv.doHarvest(provider, args.metadata, from_=from_, until=until)
+        provider._verbose=args.verbose
+        harv.doHarvest(provider, args.metadata, from_=initial, until=final)
         
     
     
