@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
-from customclient import CustomClient
 from oaipmh.metadata import MetadataRegistry, oai_dc_reader
+from customclient import CustomClient
 from oaipmh.server import oai_dc_writer
 from os.path import exists
 from datetime import datetime
+from re import compile, match
 from os import makedirs
+from settings import *
 import argparse
-import settings
 import json
 import sys
 
-BASE_PATH = '/home/rafael/aplicacoes/oai-pmh/script/tmp/'
 
 class Harvester(object):
     '''A client to originally harvest DSpace repositories.
@@ -24,31 +23,44 @@ class Harvester(object):
         self._registry = registry
 
     def getProvidersIterator(self):
-        for provider in settings.PROVIDERS:
+        for provider in PROVIDERS:
             providerDir = BASE_PATH+provider[0]
             if not exists(providerDir):
                 makedirs(providerDir)
             yield CustomClient(provider[1], providerDir, self._registry)
             
 
-    def doMultHarvest(self, providers):
+    def doMultHarvest(self, providers, metadata):
         for provider in providers:
             date = self.getFromDate(provider)
-            iterator = provider.listRecords(metadataPrefix='oai_dc', from_=date)
-            for rec in iterator:
+            lastDate = None
+            iterator = provider.listRecords(metadataPrefix=metadata, from_=date)
+            for header, metadata, about in iterator:
                 provider.save()
+                lastDate = header.datestamp()
+                
+            self.saveLastDate(provider, lastDate)
                 
     def doHarvest(self, provider, metadata, from_, until):
-        import pdb; pdb.set_trace()
+        
+        lastDate = self.getFromDate(provider)
+        
+        if lastDate > from_:
+            from_ = lastDate        
+        
         iterator = provider.listRecords(metadataPrefix=metadata, 
                                         from_=from_, until=until)
-        for rec in iterator:
+        newLastDate = None
+        for header, metadata, about in iterator:
             provider.save()
+            newLastDate = header.datestamp()
+            
+        self.saveLastDate(provider, newLastDate)
 
-    def getFromDate(provider):
+    def getFromDate(self, provider):
         pName = provider._name
         
-        with open('teste.json', 'r') as f:
+        with open('dates.json', 'r') as f:
             entry = json.load(f)
         
         pDict = entry.get(pName)
@@ -59,9 +71,9 @@ class Harvester(object):
                             pDict['day'])
         else:
             date = provider._earliestDate
+        return date
         
-        
-    def saveLastDate(provider, date):
+    def saveLastDate(self, provider, date):
         pName = provider._name
         entry = {}
         entry[pName] = {}
@@ -69,26 +81,17 @@ class Harvester(object):
         entry[pName]['month'] = date.month
         entry[pName]['day'] = date.day
         
-        with open('teste.json', mode='a+') as f:
+        with open('dates.json', mode='a+') as f:
             json.dump(entry, f, indent=2)
 
-    def loadLastDate(provider):
-        with open('teste.json', mode='r') as f:
-            entry = json.load(f)
-            
-        pName = provider._name
-        lastDate = datetime(entry[pName]['year'],
-                            entry[pName]['month'],
-                            entry[pName]['day'])
-                            
-        return lastDate
-
-
-if __name__ == '__main__':
+    
+if __name__ == '__main__' :
     
     registry = MetadataRegistry()
     registry.registerReader('oai_dc', oai_dc_reader)
     registry.registerWriter('oai_dc', oai_dc_writer)
+    
+    date_patern = compile(REGEX_DATE)
     
     harv = Harvester(registry)
     
@@ -96,7 +99,7 @@ if __name__ == '__main__':
         description='Make harvest from any repositories and save the metadata in file system')
         
     parser.add_argument(
-        '-u', '--url', type=str, default=None,
+        'url', type=str, default=None, metavar='OAI provider URL',
         help='an alternative URL for harvesting. Ignore settings file')   
     
     parser.add_argument(
@@ -116,13 +119,29 @@ if __name__ == '__main__':
         help='makes harvest from a default providers list')
         
     args = parser.parse_args()
+    
     if args.go:
         providers = harv.getProvidersIterator()
-        harv.doMultHarvest(providers)
+        harv.doMultHarvest(providers, args.metadata)
     else:
-        from_=datetime.strptime(args.from_, '%Y-%m-%d')
-        until=datetime.strptime(args.to, '%Y-%m-%d')
+        if args.from_ and date_patern.match(args.from_):
+            from_=datetime.strptime(args.from_, STR_DATE)
+        elif args.from_:
+            print 'Invalid date fromat: Date must be like %s' % DATE_EX
+            #raise SystemExit
+        else:
+            from_=None
+        
+        if args.to and date_patern.match(args.to):
+            until=datetime.strptime(args.to, STR_DATE)
+        elif args.to:
+            print 'Invalid date fromat: Date must be like %s' % DATE_EX
+            #raise SystemExit
+        else:
+            until=None
+        
         provider = CustomClient(args.url, BASE_PATH, harv._registry)
+        
         harv.doHarvest(provider, args.metadata, from_=from_, until=until)
         
     
