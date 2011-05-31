@@ -1,5 +1,8 @@
 
-LIMIT_TO_CALLS = 10
+BASE_PATH = 'path to serialize xml'
+REGEX_DATE = '\d{4}-\d{2}-\d{2}'
+STR_DATE = '%Y-%m-%d'
+DATE_EX = '2011-04-30'
 
 
 PROVIDERS = (
