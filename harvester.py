@@ -146,36 +146,3 @@ if __name__ == '__main__' :
         provider = CustomClient(args.url, BASE_PATH, harv._registry)
         provider._verbose=args.verbose
         harv.doHarvest(provider, args.metadata, from_=initial, until=final)
-        
-    
-    
-    
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
