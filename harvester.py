@@ -86,6 +86,9 @@ if __name__ == '__main__' :
     
     date_patern = compile(REGEX_DATE)
     
+    if not exists(BASE_PATH):
+        makedirs(BASE_PATH)
+    
     harv = Harvester(registry)
     
     parser = argparse.ArgumentParser(
