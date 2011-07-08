@@ -42,9 +42,9 @@ class Harvester(object):
                 
             self.saveLastDate(provider, lastDate)
                 
-    def doHarvest(self, provider, metadata, from_, until):
+    def doHarvest(self, provider, metadata, setName, from_, until):
         
-        iterator = provider.listRecords(metadataPrefix=metadata,
+        iterator = provider.listRecords(metadataPrefix=metadata, set=setName,
                                         from_=from_, until=until)
         
         for header, metadata, about in iterator:
@@ -109,6 +109,10 @@ if __name__ == '__main__' :
         help='a final date to harvest')
         
     parser.add_argument(
+        '-s', '--set', type=str, default=None,
+        help='defines a SET to harvest')
+        
+    parser.add_argument(
         '-m', '--metadata', type=str, default='oai_dc',
         help='specify the metadataPrefix for OAI protocol')
         
@@ -148,4 +152,5 @@ if __name__ == '__main__' :
         
         provider = CustomClient(args.url, BASE_PATH, harv._registry)
         provider._verbose=args.verbose
-        harv.doHarvest(provider, args.metadata, from_=initial, until=final)
+        harv.doHarvest(provider, args.metadata, args.set,
+                       from_=initial, until=final)
