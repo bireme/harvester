@@ -77,6 +77,14 @@ class Harvester(object):
         
         with open('dates.json', mode='a+') as f:
             json.dump(entry, f, indent=2)
+    
+    def showSets(self, provider):
+        iterator = provider.listSets()
+        print "Provider Name: %s \n" % provider._name
+
+        for header, metadata, about in iterator:
+            print "setSpec: {:<30} \t setName: {}".format(header, metadata)
+
 
     
 if __name__ == '__main__' :
@@ -121,6 +129,10 @@ if __name__ == '__main__' :
     parser.add_argument(
         '-v', '--verbose', action='store_true', 
         help='list each request information')
+
+    parser.add_argument(
+        '-l', '--list', action='store_true', 
+        help='list each provider set')
         
     group.add_argument(
         '-g', '--go', action='store_true', 
@@ -131,6 +143,9 @@ if __name__ == '__main__' :
     if args.go:
         providers = harv.getProvidersIterator()
         harv.doMultHarvest(providers, args.metadata, args.verbose)
+    elif args.list:
+        provider = CustomClient(args.url, BASE_PATH, harv._registry)
+        harv.showSets(provider)
     else:
         if args.initial and date_patern.match(args.initial):
             initial=datetime.strptime(args.initial, STR_DATE)
