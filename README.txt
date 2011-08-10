@@ -67,6 +67,8 @@ Install the Harvester application
     Development(Recommended):
     Read-only:
     (harvester)$ git clone git://github.com/rafaelnovello/harvester.git
+
+    Or:
     Read+write:
     (harvester)$ git clone git@github.com:rafaelnovello/harvester.git
 
