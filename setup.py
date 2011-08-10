@@ -9,7 +9,7 @@ README_FILEPATH = os.path.join(here, 'README.txt')
 README = open(README_FILEPATH).read()
 #CHANGES = open(CHANGES_FILEPATH).read()
 
-requirements = ['pyoai']
+requirements = ['pyoai', 'argparse']
 additional_files = [README_FILEPATH]
 
 
