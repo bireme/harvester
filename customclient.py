@@ -2,7 +2,6 @@ from oaipmh import client
 import os.path
 from datetime import date
 from urllib import urlencode
-
             
 class CustomClient(client.Client):
     def __init__(self, base_url, mapping_path, metadata_registry):
@@ -14,6 +13,7 @@ class CustomClient(client.Client):
         self._name = about.repositoryName()
         self._earliestDate = about.earliestDatestamp()
         self._day_granularity = True
+        self._mapping.clear()
         
         
     def makeRequest(self, **kw):
