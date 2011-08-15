@@ -29,10 +29,10 @@ class CustomClient(client.Client):
         self._mapping[getRequestKey(kw)] = text
         return text
 
-    def save(self):
+    def save(self, output):
         mapping_path = self._mapping_path
         f = open(os.path.join(mapping_path, 'mapping.txt'), 'w')
-        filename = self._name + '.xml'
+        filename = (output if output != None else self._name) + '.xml'
         response_f = open(os.path.join(mapping_path, filename), 'w')
         
         for request, response in self._mapping.items():

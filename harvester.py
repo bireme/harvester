@@ -20,8 +20,9 @@ class Harvester(object):
     Use the PyOAI API.
     '''
 
-    def __init__(self, registry):
+    def __init__(self, registry, output):
         self._registry = registry
+        self._output = output
 
     def getProvidersIterator(self):
         for provider in PROVIDERS:
@@ -38,7 +39,7 @@ class Harvester(object):
             lastDate = None
             iterator = provider.listRecords(metadataPrefix=metadata, from_=date)
             for header, metadata, about in iterator:
-                provider.save()
+                provider.save(self._output)
                 lastDate = header.datestamp()
                 
             self.saveLastDate(provider, lastDate)
@@ -49,7 +50,7 @@ class Harvester(object):
                                         from_=from_, until=until)
         
         for header, metadata, about in iterator:
-            provider.save()
+            provider.save(self._output)
 
     def getFromDate(self, provider):
         pName = provider._name
@@ -99,8 +100,6 @@ if __name__ == '__main__' :
     if not exists(BASE_PATH):
         makedirs(BASE_PATH)
     
-    harv = Harvester(registry)
-    
     parser = argparse.ArgumentParser(
         description='Make harvest from any repositories and save the metadata in file system')
         
@@ -133,12 +132,18 @@ if __name__ == '__main__' :
     parser.add_argument(
         '-l', '--list', action='store_true', 
         help='list each provider set')
+
+    parser.add_argument(
+        '-o', '--out', type=str, default=None, metavar='File name',
+        help='an alternative name to out put file')
         
     group.add_argument(
         '-g', '--go', action='store_true', 
         help='makes harvest from a default providers list')
         
     args = parser.parse_args()
+
+    harv = Harvester(registry, args.out)
     
     if args.go:
         providers = harv.getProvidersIterator()
