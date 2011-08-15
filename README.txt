@@ -86,3 +86,7 @@ Running the application
 Harvester application is a command line tool. To see all option run:
 
     (harvester)$ ./harvester.py --help
+
+A command line example using dates, metadataPrefix and setSpec can be:
+
+    (harvester)$ ./harvester.py -u http://epubs.cclrc.ac.uk/oai/ -m oai_dc -i 2007-12-06 -f 2007-12-06 -s hdl_123456789_13040
