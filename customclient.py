@@ -1,7 +1,8 @@
 from oaipmh import client
-import os.path
+from os import path, mkdir
 from datetime import date
 from urllib import urlencode
+from string import zfill
             
 class CustomClient(client.Client):
     def __init__(self, base_url, mapping_path, metadata_registry):
@@ -23,7 +24,7 @@ class CustomClient(client.Client):
             items = kw.items()
             items.sort()
             return urlencode(items)
-        if self._verbose == True:
+        if self._verbose:
             print kw
         text = client.Client.makeRequest(self, **kw)
         self._mapping[getRequestKey(kw)] = text
@@ -31,16 +32,19 @@ class CustomClient(client.Client):
 
     def save(self, output):
         mapping_path = self._mapping_path
-        f = open(os.path.join(mapping_path, 'mapping.txt'), 'w')
-        filename = (output if output != None else self._name) + '.xml'
-        response_f = open(os.path.join(mapping_path, filename), 'w')
-        
+        output_dir = (output if output != None else self._name)
+        if not path.exists(path.join(mapping_path, output_dir)):
+            mkdir(path.join(mapping_path, output_dir))
+        f = open(path.join(mapping_path, output_dir, 'mapping.txt'), 'w')
+        i = 0
+                
         for request, response in self._mapping.items():
+            filename = zfill(str(i), 5) + '.xml'
+            response_f = open(path.join(mapping_path, output_dir, filename), 'w')
             f.write(request)
             f.write('\n')
             response_f.write(response)
-            
-        response_f.close()
-        f.close()
-  
+            response_f.close()
+            i += 1
 
+        f.close()

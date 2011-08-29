@@ -134,8 +134,8 @@ if __name__ == '__main__' :
         help='list each provider set')
 
     parser.add_argument(
-        '-o', '--out', type=str, default=None, metavar='File name',
-        help='an alternative name to out put file')
+        '-o', '--out', type=str, default=None, metavar='Directory name',
+        help='an alternative name to out put directory')
         
     group.add_argument(
         '-g', '--go', action='store_true', 
