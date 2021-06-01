@@ -1,6 +1,7 @@
 ========================
 How to install Harvester
 ========================
+This repository has been archived. It is now read-only.
 
 Install pre-requisites
 ----------------------
